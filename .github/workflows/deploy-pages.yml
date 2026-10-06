@@ -1,0 +1,51 @@
+name: Deploy Future Verb to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      CAREER_NET_API_KEY: ${{ secrets.CAREER_NET_API_KEY }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Generate static CareerNet data
+        if: ${{ env.CAREER_NET_API_KEY != '' }}
+        run: node scripts/fetch-careernet.mjs
+
+      - name: Use bundled sample data when no API key is configured
+        if: ${{ env.CAREER_NET_API_KEY == '' }}
+        run: echo "CAREER_NET_API_KEY is not configured; deploying with the bundled empty data file."
+
+      - name: Build the static site
+        run: node scripts/build-site.mjs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
