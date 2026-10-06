@@ -1,0 +1,14 @@
+{
+  "name": "future-verb-career-static",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:data": "node --env-file-if-exists=.env scripts/fetch-careernet.mjs",
+    "build:site": "node scripts/build-site.mjs",
+    "build": "npm run build:data && npm run build:site"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
